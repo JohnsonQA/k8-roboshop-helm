@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb
+  namespace: roboshop
+  labels:
+    component: mongodb
+    project: roboshop
+    tier: database
+spec:
+  selector:
+    matchLabels:
+      component: mongodb
+      project: roboshop
+      tier: database  #labels has to match with .spec.template.metadata.labels
+  serviceName: "mongodb-headless"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        component: mongodb
+        project: roboshop
+        tier: database
+    spec:
+      containers:
+      - name: mongodb
+        image: "{{ .Values.statefulset.imageURL }}:{{ .Values.statefulset.imageVersion }}"
+        volumeMounts:
+        - name: mongodb-data
+          mountPath: /db/data
+  volumeClaimTemplates:
+  - metadata:
+      name: mongodb-data  # this name should match with volumeMounts name
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "roboshop-ebs"
+      resources:
+        requests:
+          storage: 2Gi
